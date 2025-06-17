@@ -55,5 +55,3 @@ jobs:
         run: |
           cd terraform
           terraform destroy -auto-approve
-
-#
