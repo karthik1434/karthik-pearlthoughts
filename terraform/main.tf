@@ -16,7 +16,7 @@ provider "aws" {
 resource "aws_instance" "mashion" {
   ami           = "ami-0e35ddab05955cf57"
   instance_type = "t2.micro"
-  key_name      = "karthik-strapi"
+  key_name      = "karthik"
   subnet_id     = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.my_sg.id]
   associate_public_ip_address = true
