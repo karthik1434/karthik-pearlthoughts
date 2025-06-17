@@ -35,7 +35,7 @@ egress {
   }
 
   tags = {
-    Name = "${var.name}master_node-sg"
+    Name = "${var.name}-sg"
   }
 }
 
