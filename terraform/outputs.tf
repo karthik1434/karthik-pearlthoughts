@@ -1,3 +1,4 @@
-output "instence_public_ip" {
-  value = aws_instance.mashion.public_ip
+output "load_balancer_dns" {
+  description = "The DNS name of the Application Load Balancer."
+  value       = aws_lb.main.dns_name
 }
