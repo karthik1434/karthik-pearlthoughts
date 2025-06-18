@@ -11,7 +11,7 @@ resource "aws_ecs_service" "main" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = aws_subnet.public.id
+    subnets         = [aws_subnet.public.id]
     security_groups = [aws_security_group.task_sg.id]
   }
 
@@ -91,10 +91,6 @@ resource "aws_security_group" "task_sg" {
 
 
 
-# ECS Cluster
-resource "aws_ecs_cluster" "main" {
-  name = "${var.name}-cluster"
-}
 
 # IAM Role for ECS Task Execution
 resource "aws_iam_role" "ecs_task_execution_role" {
