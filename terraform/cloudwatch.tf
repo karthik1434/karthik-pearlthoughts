@@ -4,7 +4,7 @@ resource "aws_cloudwatch_log_group" "strapi" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
-  alarm_name          = "HighCPU-Alarm-Strapi"
+  alarm_name          = "HighCPU-Alarm-${var.name}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
@@ -22,7 +22,7 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
 
 
 resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
-  dashboard_name = "StrapiDashboard"
+  dashboard_name = "${var.name}-Dashboard"
   dashboard_body = jsonencode({
     widgets = [
       {
