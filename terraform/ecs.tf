@@ -10,6 +10,12 @@ resource "aws_ecs_service" "main" {
   desired_count   = 1
   launch_type     = "FARGATE"
 
+  # Add capacity provider strategy for Fargate Spot
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+  }
+
   network_configuration {
     subnets         = [aws_subnet.public.id]
     security_groups = [aws_security_group.task_sg.id]
