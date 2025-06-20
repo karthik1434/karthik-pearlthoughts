@@ -2,6 +2,17 @@ resource "aws_ecs_cluster" "main" {
   name = "${var.name}-cluster"
 }
 
+resource "aws_ecs_cluster_capacity_providers" "main" {
+  cluster_name       = aws_ecs_cluster.main.name
+  capacity_providers = ["FARGATE_SPOT"]
+
+  default_capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+    base              = 0
+  }
+}
+
 # ECS Service
 resource "aws_ecs_service" "main" {
   name            = "${var.name}-service"
@@ -43,8 +54,8 @@ resource "aws_ecs_task_definition" "app" {
   family                   = "${var.name}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
+  cpu                      = "512"
+  memory                   = "1024"
   execution_role_arn = data.aws_iam_role.ecs_task_execution.arn
 
   container_definitions = jsonencode([
