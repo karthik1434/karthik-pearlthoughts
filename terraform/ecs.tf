@@ -32,6 +32,12 @@ resource "aws_ecs_service" "main" {
     assign_public_ip = true
   }
 
+  load_balancer {
+    target_group_arn = aws_lb_target_group.blue.arn
+    container_name   = "${var.name}-strapi"
+    container_port   = 1337
+  }
+
   force_new_deployment = true
 }
 
@@ -111,7 +117,7 @@ resource "aws_security_group" "task_sg" {
     from_port       = 1337
     to_port         = 1337
     protocol        = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.alb_sg.id]
   }
 
   egress {
