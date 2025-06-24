@@ -27,7 +27,7 @@ resource "aws_ecs_service" "main" {
   }
 
   network_configuration {
-    subnets         = aws_subnet.public[*].id
+    subnets         = aws_subnet.public[0].id
     security_groups = [aws_security_group.task_sg.id]
     assign_public_ip = true
   }
@@ -37,7 +37,7 @@ resource "aws_ecs_service" "main" {
     container_name   = "${var.name}-strapi"
     container_port   = 1337
   }
-
+  depends_on = [aws_alb_listener.http]
   force_new_deployment = true
 }
 
