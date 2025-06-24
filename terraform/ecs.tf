@@ -57,7 +57,7 @@ resource "aws_iam_role_policy_attachment" "ecs_exec_policy" {
 
 # ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
-  family                   = "${var.name}-task"
+  family                   = "${var.name}-strapi"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
