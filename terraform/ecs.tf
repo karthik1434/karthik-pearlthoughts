@@ -37,7 +37,7 @@ resource "aws_ecs_service" "main" {
     container_name   = "${var.name}-strapi"
     container_port   = 1337
   }
-  depends_on = [aws_alb_listener.http]
+  depends_on = [aws_lb_listener.http]
   force_new_deployment = true
 }
 
