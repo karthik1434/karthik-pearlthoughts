@@ -75,15 +75,6 @@ resource "aws_ecs_task_definition" "app" {
           hostPort      = 1337
         }
       ]
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.strapi.name
-          awslogs-region        = var.region
-          awslogs-stream-prefix = "ecs/strapi"
-        }
-      }
     #   environment = [
     #     {
     #       name  = "APP_KEYS",
@@ -126,10 +117,4 @@ resource "aws_security_group" "task_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-}
-
-
-resource "aws_cloudwatch_log_group" "strapi" {
-  name              = "/ecs/${var.name}"
-  retention_in_days = 7
 }
