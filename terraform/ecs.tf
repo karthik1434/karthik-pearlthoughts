@@ -117,7 +117,7 @@ resource "aws_security_group" "task_sg" {
     from_port       = 1337
     to_port         = 1337
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    security_groups = [aws_security_group.lb_sg.id]
   }
 
   egress {

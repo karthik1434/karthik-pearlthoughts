@@ -1,5 +1,14 @@
+resource "aws_lb" "main" {
+  name               = "${var.name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  subnets            = [aws_subnet.public.id]
+  security_groups    = [aws_security_group.lb_sg.id]
+}
+
+
 resource "aws_lb_target_group" "blue" {
-  name        = "${var.name}-tg"
+  name        = "${var.name}-blue-tg"
   port        = 1337
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
