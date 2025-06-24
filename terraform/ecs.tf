@@ -66,7 +66,7 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name      = var.name
+      name      = "${var.name}-strapi"
       image     = "duggana1994/strapi-app:latest"
       essential = true
       
