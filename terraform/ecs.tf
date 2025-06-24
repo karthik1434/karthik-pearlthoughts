@@ -27,7 +27,7 @@ resource "aws_ecs_service" "main" {
   }
 
   network_configuration {
-    subnets         = [aws_subnet.public.id]
+    subnets         = aws_subnet.public[*].id
     security_groups = [aws_security_group.task_sg.id]
     assign_public_ip = true
   }
@@ -69,6 +69,7 @@ resource "aws_ecs_task_definition" "app" {
       name      = var.name
       image     = "duggana1994/strapi-app:latest"
       essential = true
+      
       portMappings = [
         {
           containerPort = 1337
