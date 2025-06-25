@@ -44,9 +44,14 @@ jobs:
         run: |
           cd terraform
           terraform init
-          terraform apply -auto-approve
+          terraform apply -auto-approve 
+          continue-on-error: true
+          
+      - name: Clean up on Apply Failure
+        if: steps.apply.outcome == 'failure'
+        run: terraform destroy -auto-approve
 
-      - name: Wait for 10 minutes
+      - name: Wait for 20 minutes
         if: always()
         run: sleep 1200
   

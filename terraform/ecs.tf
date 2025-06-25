@@ -45,7 +45,8 @@ resource "aws_ecs_service" "blue" {
 resource "aws_ecs_service" "green" {
   name            = "${var.name}-green"
   cluster         = aws_ecs_cluster.main.id
-  desired_count   = 1
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = 0
 
   # Add capacity provider strategy for Fargate Spot
   capacity_provider_strategy {
