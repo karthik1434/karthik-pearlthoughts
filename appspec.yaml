@@ -3,7 +3,7 @@ Resources:
   - TargetService:
       Type: AWS::ECS::Service
       Properties:
-        TaskDefinition: <TASK_DEFINITION_ARN> 
+        TaskDefinition: __TASK_DEFINITION_ARN__
         LoadBalancerInfo:
           ContainerName: "karthik-strapi"
           ContainerPort: 1337

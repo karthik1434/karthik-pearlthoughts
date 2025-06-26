@@ -50,19 +50,16 @@ jobs:
           echo "task_def_arn=$TASK_DEF_ARN" >> $GITHUB_OUTPUT
           echo "✅ Task Definition ARN: $TASK_DEF_ARN"
 
-
-      - name: Update AppSpec with new ARN
+      - name: Replace Task Definition ARN in AppSpec
+        shell: bash
         run: |
-          # Use the correct variable name `task_def_arn` from the previous step's outputs.
-          # The value will now be the full ARN.
-          NEW_TASK_DEFINITION_ARN="${{ steps.register-task-def.outputs.task_def_arn }}"
-          
-          # Use 'sed' to replace the placeholder with the new ARN.
-          sed -i "s|<TASK_DEFINITION_ARN>|$NEW_TASK_DEFINITION_ARN|g" appspec.yaml
-          
-          echo "AppSpec file updated with new ARN: $NEW_TASK_DEFINITION_ARN"
+          echo "➡️ Injecting Task Definition ARN into appspec.yaml..."
+    
+          sed -i "s|__TASK_DEFINITION_ARN__|${{ steps.register-task.outputs.task_def_arn }}|g" appspec.yaml
+    
+          echo "✅ AppSpec file updated with new ARN:"
 
-          
+      
       - name: AppSpec file content
         run: |
           
