@@ -53,9 +53,16 @@ jobs:
 
       - name: Update AppSpec with new ARN
         run: |
-          NEW_TASK_DEFINITION_ARN="${{ steps.register-task-def.outputs.NEW_TASK_DEFINITION_ARN }}"
+          # Use the correct variable name `task_def_arn` from the previous step's outputs.
+          # The value will now be the full ARN.
+          NEW_TASK_DEFINITION_ARN="${{ steps.register-task-def.outputs.task_def_arn }}"
+          
+          # Use 'sed' to replace the placeholder with the new ARN.
           sed -i "s|<TASK_DEFINITION_ARN>|$NEW_TASK_DEFINITION_ARN|g" appspec.yaml
+          
+          echo "AppSpec file updated with new ARN: $NEW_TASK_DEFINITION_ARN"
 
+          
       - name: AppSpec file content
         run: |
           
