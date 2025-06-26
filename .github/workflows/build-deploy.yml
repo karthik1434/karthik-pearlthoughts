@@ -48,23 +48,11 @@ jobs:
           TASK_DEF_ARN=$(echo "$RESPONSE" | jq -r '.taskDefinition.taskDefinitionArn')
     
           echo "task_def_arn=$TASK_DEF_ARN" >> $GITHUB_OUTPUT
-          echo "✅ Task Definition ARN: $TASK_DEF_ARN"
 
       - name: Replace Task Definition ARN in AppSpec
         shell: bash
         run: |
-          echo "➡️ Injecting Task Definition ARN into appspec.yaml..."
-    
           sed -i "s|__TASK_DEFINITION_ARN__|${{ steps.register-task.outputs.task_def_arn }}|g" appspec.yaml
-    
-          echo "✅ AppSpec file updated with new ARN:"
-
-      
-      - name: AppSpec file content
-        run: |
-          
-          cat appspec.yaml
-
       
       - name: Upload AppSpec to S3
         run: aws s3 cp appspec.yaml s3://karthikduggana-strapi/appspec.yaml --region us-east-1
