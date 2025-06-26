@@ -37,11 +37,66 @@ jobs:
           task-definition: task-definition.json
           container-name: karthik-strapi
           image: duggana1994/strapi-app:${{ github.sha }}
-      - name: Create CodeDeploy Deployment
+
+          
+      - name: Create CodeDeploy Deployment (without S3)
         run: |
+          # The 'render-task-def' action saves the rendered task definition to a file.
+          # We need to read that file and build the AppSpec.
+          #
+          # Get the rendered task definition ARN from the output of the previous step.
+          # Note: The 'render-task-def' action's output is not the ARN, but the
+          # JSON content itself. We need to register a new task definition first
+          # to get the ARN. The `render-task-def` action is typically used
+          # to render a local file before registering it.
+          #
+          # Let's adjust this step slightly. We will render the task definition
+          # and then register it to get the ARN.
+
+          # 1. Register the new task definition with the updated image
+          # The rendered task definition is available at the path in the output.
+          # So we can use the 'rendered-task-definition' output from the previous step.
+          RENDERED_TASK_DEFINITION_PATH=${{ steps.render-task-def.outputs.task-definition }}
+          
+          # Use the aws cli to register the new task definition
+          NEW_TASK_DEF_RESPONSE=$(aws ecs register-task-definition --cli-input-json file://${RENDERED_TASK_DEFINITION_PATH})
+          
+          # Extract the new Task Definition ARN using 'jq'
+          NEW_TASK_DEFINITION_ARN=$(echo "$NEW_TASK_DEF_RESPONSE" | jq -r '.taskDefinition.taskDefinitionArn')
+
+          # 2. Create the AppSpec content as a JSON string
+          # This is the revision content that CodeDeploy expects for ECS.
+          APPSPEC_CONTENT=$(jq -c --null-input \
+            --arg task_def_arn "$NEW_TASK_DEFINITION_ARN" \
+            '{
+              "version": "0.0",
+              "Resources": [
+                {
+                  "TargetService": {
+                    "Type": "AWS::ECS::Service",
+                    "Properties": {
+                      "TaskDefinition": $task_def_arn,
+                      "LoadBalancerInfo": {
+                        "ContainerName": "karthik-strapi",
+                        "ContainerPort": 1337
+                      }
+                    }
+                  }
+                }
+              ]
+            }'
+          )
+
+          # 3. Calculate the SHA256 hash of the AppSpec content
+          # This is required by the `--appspec-content` parameter.
+          APPSPEC_SHA256=$(echo -n "$APPSPEC_CONTENT" | sha256sum | awk '{print $1}')
+
+          # 4. Create the CodeDeploy deployment using --appspec-content
+          # We construct the JSON payload for the --revision parameter.
           aws deploy create-deployment \
             --application-name karthik-codedeploy-app \
             --deployment-group-name karthik-deployment-group \
             --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
-            --github-location repository=${{ github.repository }},commitId=${{ github.sha }} \
-            --description "Deployed from GitHub Actions"
+            --description "Deployed from GitHub Actions without S3" \
+            --revision "{\"revisionType\":\"AppSpecContent\",\"appspecContent\":{\"content\":\"$APPSPEC_CONTENT\",\"sha256\":\"$APPSPEC_SHA256\"}}"
+        shell: /usr/bin/bash -e {0}
