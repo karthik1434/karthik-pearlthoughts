@@ -37,43 +37,33 @@ jobs:
           task-definition: task-definition.json
           container-name: karthik-strapi
           image: duggana1994/strapi-app:${{ github.sha }}
-      
-      - name: Create CodeDeploy Deployment
+
+      - name: Register ECS Task Definition
+        id: register-task
+        shell: bash
         run: |
-          # 1. Register a new ECS Task Definition
-          # The 'render-task-def' action saves the rendered task definition JSON to a temporary file.
-          RENDERED_TASK_DEFINITION_PATH=${{ steps.render-task-def.outputs.task-definition }}
-          
-          # Use the AWS CLI to register the new task definition to get its new ARN.
-          NEW_TASK_DEF_RESPONSE=$(aws ecs register-task-definition --cli-input-json file://${RENDERED_TASK_DEFINITION_PATH})
-          
-          # Extract the new Task Definition ARN using 'jq'
-          NEW_TASK_DEFINITION_ARN=$(echo "$NEW_TASK_DEF_RESPONSE" | jq -r '.taskDefinition.taskDefinitionArn')
-          
-          echo "Registered new Task Definition ARN: $NEW_TASK_DEFINITION_ARN"
+          TASK_DEF_PATH="${{ steps.render-task-def.outputs.task-definition }}"
+    
+          RESPONSE=$(aws ecs register-task-definition --cli-input-json file://"$TASK_DEF_PATH")
+          TASK_DEF_ARN=$(echo "$RESPONSE" | jq -r '.taskDefinition.taskDefinitionArn')
+    
+          echo "task_def_arn=$TASK_DEF_ARN" >> $GITHUB_OUTPUT
+          echo "✅ Task Definition ARN: $TASK_DEF_ARN"
 
-          # 2. Create the CodeDeploy AppSpec file dynamically
-          # This step is NECESSARY to inject the new, correct Task Definition ARN.
-          cat <<EOF >appspec.yaml
-          version: 0.0
-          Resources:
-            - TargetService:
-                Type: AWS::ECS::Service
-                Properties:
-                  TaskDefinition: $NEW_TASK_DEFINITION_ARN
-                  LoadBalancerInfo:
-                    ContainerName: "karthik-strapi"  # <--- VERIFY THIS CONTAINER NAME
-                    ContainerPort: 1337                # <--- VERIFY THIS PORT
-          EOF
 
-          # 3. Upload the dynamically created AppSpec file to your S3 bucket
-          aws s3 cp appspec.yaml s3://karthikduggana-strapi/appspec.yaml --region us-east-1
+      - name: Update AppSpec with new ARN
+        run: |
+          NEW_TASK_DEFINITION_ARN="${{ steps.register-task-def.outputs.NEW_TASK_DEFINITION_ARN }}"
+          sed -i "s|<TASK_DEFINITION_ARN>|$NEW_TASK_DEFINITION_ARN|g" appspec.yaml
+      
+      - name: Upload AppSpec to S3
+        run: aws s3 cp appspec.yaml s3://karthikduggana-strapi/appspec.yaml --region us-east-1
 
-          # 4. Create the CodeDeploy deployment using the S3 location
+      - name: Trigger CodeDeploy Deployment
+        run: |
           aws deploy create-deployment \
             --application-name karthik-codedeploy-app \
             --deployment-group-name karthik-deployment-group \
             --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
             --s3-location bucket=karthikduggana-strapi,key=appspec.yaml,bundleType=YAML \
             --description "Deployed from GitHub Actions with SHA ${{ github.sha }}"
-        shell: /usr/bin/bash -e {0}
