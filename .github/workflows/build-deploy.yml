@@ -39,18 +39,19 @@ jobs:
           container-name: karthik-strapi
           image: duggana1994/strapi-app:${{ github.sha }}
 
-      - name: Register new ECS Task Definition
-        id: register-task-def
-        uses: aws-actions/amazon-ecs-register-task-definition@v1
-        with:
-          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-
-      - name: Trigger CodeDeploy deployment
+      - name: Create deployment with CodeDeploy
         run: |
           aws deploy create-deployment \
             --application-name karthik-codedeploy-app \
             --deployment-group-name karthik-deployment-group \
-            --task-definition ${{ steps.register-task-def.outputs.task-definition-arn }} \
+            --revision file://appspec.yml \
             --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
-            --file-exists-behavior OVERWRITE \
-            --s3-location bucket=my-bucket,key=appspec.yml,bundleType=YAML
+            --description "Deployed from GitHub Actions with SHA ${{ github.sha }}" \
+            --target-application-name karthik-codedeploy-app \
+            --ecs-target {
+              "taskDefinition": "${{ steps.render-task-def.outputs.task-definition-arn }}",
+              "service": {
+                "name": "karthik-strapi",
+                "cluster": "karthik-cluster"
+              }
+            }
