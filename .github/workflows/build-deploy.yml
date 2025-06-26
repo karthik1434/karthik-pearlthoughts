@@ -38,11 +38,10 @@ jobs:
           container-name: karthik-strapi
           image: duggana1994/strapi-app:${{ github.sha }}
       
-      - name: Create CodeDeploy Deployment
-        run: |
-          aws deploy create-deployment \
-            --application-name karthik-codedeploy-app \
-            --deployment-group-name karthik-deployment-group \
-            --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
-            --github-location repository=${{ github.repository }},commitId=${{ github.sha }} \
-            --description "Deployed from GitHub Actions with SHA ${{ github.sha }}"
+      - name: Deploy to ECS via CodeDeploy
+        uses: aws-actions/aws-codedeploy-deploy-application@v1
+        with:
+          application-name: karthik-codedeploy-app
+          deployment-group: karthik-deployment-group
+          task-definition: ${{ steps.render-task-def.outputs.task-definition-arn }}
+          appspec: appspec.yaml
