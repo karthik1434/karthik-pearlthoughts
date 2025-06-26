@@ -37,20 +37,11 @@ jobs:
           task-definition: task-definition.json
           container-name: karthik-strapi
           image: duggana1994/strapi-app:${{ github.sha }}
-
-      - name: Create deployment with CodeDeploy
+      - name: Create CodeDeploy Deployment
         run: |
           aws deploy create-deployment \
             --application-name karthik-codedeploy-app \
             --deployment-group-name karthik-deployment-group \
-            --revision file://appspec.yml \
             --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
-            --description "Deployed from GitHub Actions with SHA ${{ github.sha }}" \
-            --target-application-name karthik-codedeploy-app \
-            --ecs-target {
-              "taskDefinition": "${{ steps.render-task-def.outputs.task-definition-arn }}",
-              "service": {
-                "name": "karthik-strapi",
-                "cluster": "karthik-cluster"
-              }
-            }
+            --github-location repository=${{ github.repository }},commitId=${{ github.sha }} \
+            --description "Deployed from GitHub Actions"
