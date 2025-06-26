@@ -1,0 +1,21 @@
+{
+  "family": "karthik-strapi",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::607700977843:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "karthik-strapi",
+      "image": "duggana1994/strapi-app:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 1337,
+          "hostPort": 1337
+        }
+      ]
+    }
+  ]
+}

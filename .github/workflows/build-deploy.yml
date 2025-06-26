@@ -1,8 +1,8 @@
-# name: Docker Build and Push
+name: Docker Build and Push
 
-# on:
-#   push:
-#     branches: [ main ]
+on:
+  push:
+    branches: [ main ]
 
 jobs:
   build-and-push:
@@ -18,14 +18,15 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
+      - name: Set up environment variables
+        run: echo "GITHUB_SHA=${{ github.sha }}" >> $GITHUB_ENV
+
       - name: Build Docker image
-        run: docker build -t strapi-app:latest .
+        run: docker build -t strapi-app:latest -t duggana1994/strapi-app:${{ github.sha }} .
 
-      - name: Tag Docker image
-        run: docker tag strapi-app:latest duggana1994/strapi-app:latest
-
-      - name: Push Docker image
-        run: docker push duggana1994/strapi-app:latest
+      - name: Push Docker images
+        run: |
+          docker push duggana1994/strapi-app:${{ github.sha }}
 
 
       - name: Configure AWS credentials
@@ -33,25 +34,42 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: ap-south-1
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.6.6
+      # - name: Set up Terraform
+      #   uses: hashicorp/setup-terraform@v2
+      #   with:
+      #     terraform_version: 1.6.6
 
-      - name: Terraform Init and Apply
-        run: |
-          cd terraform
-          terraform init
-          terraform apply -auto-approve 
+      # - name: Terraform Init and Apply
+      #   run: |
+      #     cd terraform
+      #     terraform init
+      #     terraform apply -auto-approve 
 
-      - name: Wait for 20 minutes
-        if: always()
-        run: sleep 1200
+      # - name: Wait for 20 minutes
+      #   if: always()
+      #   run: sleep 1200
   
-      - name: Terraform Destroy
-        if: always()
-        run: |
-          cd terraform
-          terraform destroy -auto-approve
+      # - name: Terraform Destroy
+      #   if: always()
+      #   run: |
+      #     cd terraform
+      #     terraform destroy -auto-approve
+
+
+      - name: Render new ECS Task Definition
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: karthik-strapi
+          image: duggana1994/strapi-app:${{ github.sha }}
+
+      - name: Deploy to ECS using CodeDeploy
+        uses: aws-actions/aws-codedeploy-deploy-application@v1
+        with:
+          application-name: karthik-codedeploy-app
+          deployment-group: karthik-deployment-group
+          task-definition: ${{ steps.render-task-def.outputs.task-definition-arn }}
+          appspec: appspec.yml

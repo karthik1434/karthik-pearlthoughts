@@ -7,6 +7,7 @@ resource "aws_codedeploy_deployment_group" "strapi" {
   app_name              = aws_codedeploy_app.strapi.name
   deployment_group_name = "karthik-deployment-group"
   service_role_arn      = data.aws_iam_role.codedeploy_role.arn
+  deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
 
   deployment_style {
     deployment_type = "BLUE_GREEN"
@@ -53,11 +54,11 @@ resource "aws_codedeploy_deployment_group" "strapi" {
 
 
 data "aws_iam_role" "codedeploy_role" {
-  name = "codedeploy_role_name"
+  name = "CodeDeployServiceRole"
 }
 
 resource "aws_iam_role_policy_attachment" "codedeploy_ecs_policy" {
   role       = data.aws_iam_role.codedeploy_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForECS"
+  policy_arn = "arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS" 
 }
 

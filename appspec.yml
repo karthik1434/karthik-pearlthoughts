@@ -1,0 +1,11 @@
+version: 0.0
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: ""
+        LoadBalancerInfo:
+          ContainerName: "karthik-strapi"
+          ContainerPort: 1337
+        TrafficRouting:
+          Type: AllAtOnce
