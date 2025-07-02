@@ -1,47 +1,34 @@
-# 🚀 Strapi Docker Deployment via EC2 and Docker Hub
+# 🚀 Strapi on Kubernetes (Minikube) - EC2 Auto Provisioning
 
-This project builds a custom Strapi Docker image, pushes it to Docker Hub, and deploys it on an AWS EC2 instance using a user data script.
+This project automates the provisioning and deployment of a **Strapi CMS** application on an **AWS EC2 Ubuntu 22.04 instance** using **Minikube (Kubernetes)** and **Docker**.
+
+The setup is done via EC2 **user-data script**, enabling a fully automated infrastructure on launch.
 
 ---
 
-## 📦 Docker Image Build & Push (PowerShell Script)
+## 📌 Features
 
-Use the following PowerShell script to build and push the Docker image to your Docker Hub account.
+- Installs Docker, Kubectl, Minikube, and all dependencies
+- Sets up Minikube with Docker as the container runtime
+- Deploys a custom Strapi Docker image to a Kubernetes cluster
+- Exposes the app via NodePort on port `31337`
+- Generates logs and test info for verification
 
-### 🔧 `build-and-push.ps1`
+---
 
-```powershell
-# Step 1: Build the local Docker image
-docker build -t strapi-app:latest .
+## 🛠️ Technologies Used
 
-# Step 2: Tag the image for Docker Hub
-docker tag strapi-app:latest duggana1994/strapi-app:latest
+- **Ubuntu 22.04 (EC2)**
+- **Docker & Docker Compose Plugin**
+- **Minikube (Kubernetes in Docker driver)**
+- **Kubectl (CLI for Kubernetes)**
+- **Custom Strapi Docker image**
+- **Cloud-init (EC2 user-data script)**
 
-# Step 3: Login to Docker Hub
-docker login
+---
 
-# Step 4: Push the image to Docker Hub
-docker push duggana1994/strapi-app:latest
+## 🚧 Prerequisites
 
-Run it with:
-
-.\build-and-push.ps1
-
-☁️ EC2 Deployment (User Data Script)
-Use this bash script in your EC2 instance's user_data field (in Terraform or AWS Console) to pull and run the Dockerized Strapi app.
-
-🔧 EC2 User Data Script
-#!/bin/bash
-apt update -y
-apt-get install -y docker.io
-systemctl start docker
-systemctl enable docker
-
-
-docker pull duggana1994/strapi-app:latest
-docker run -d -p 1337:1337 --name strapi-app duggana1994/strapi-app:latest
-🌐 Access Strapi
-Once the EC2 instance is running and the container is up, you can access Strapi at:
-
-http://<EC2_PUBLIC_IP>:1337
-Make sure the EC2 security group allows inbound traffic on port 1337.
+- AWS EC2 instance with Ubuntu 22.04
+- Instance Type: t2.medium or higher (for Minikube performance)
+- A Security Group with the following **inbound rule**:
