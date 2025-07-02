@@ -32,3 +32,19 @@ The setup is done via EC2 **user-data script**, enabling a fully automated infra
 - AWS EC2 instance with Ubuntu 22.04
 - Instance Type: t2.medium or higher (for Minikube performance)
 - A Security Group with the following **inbound rule**:
+🌐 Access Strapi
+Once EC2 is running and setup is complete (about 2–3 minutes):
+
+Visit your Strapi app in the browser:
+
+cpp
+Copy
+Edit
+http://<EC2-PUBLIC-IP>:31337
+Example: http://34.201.141.149:31337
+
+sudo cat /var/log/cloud-init-output.log
+
+kubectl get pods
+kubectl get svc
+kubectl logs <pod-name>
