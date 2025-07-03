@@ -29,7 +29,7 @@ install minikube-linux-amd64 /usr/local/bin/minikube
 rm minikube-linux-amd64
 
 # Start minikube with docker driver
-sudo -u ubuntu minikube start --driver=docker --container-runtime=docker --ports=31337:31337
+sudo -u ubuntu minikube start --driver=docker --container-runtime=docker --ports=31337:31337,32000:32000,32001:32001
 
 
 # Set ownership for kube and minikube configs
@@ -74,3 +74,26 @@ EOF
 
 # Apply strapi deployment
 sudo -u ubuntu kubectl apply -f /home/ubuntu/strapi.yaml
+
+
+# Install Helm (still okay as root)
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+# Add Helm repo and install Prometheus as `ubuntu`
+sudo -u ubuntu helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+sudo -u ubuntu helm repo update
+
+
+# Install Prometheus + Grafana stack
+sudo -u ubuntu helm install prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring --create-namespace \
+  --set grafana.service.type=NodePort \
+  --set grafana.service.nodePort=32000 \
+  --set prometheus.service.type=NodePort \
+  --set prometheus.service.nodePort=32001 \
+  --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false
+
+# Wait for Prometheus operator to be ready
+echo "Waiting for Prometheus & Grafana pods to be ready..."
+sudo -u ubuntu kubectl wait --for=condition=available --timeout=300s deployment/prometheus-kube-prometheus-stack-operator -n monitoring
+sudo -u ubuntu kubectl get secret -n monitoring prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode
